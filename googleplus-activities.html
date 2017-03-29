@@ -31,36 +31,77 @@
       // The provided key works for this sample only when run from
       // https://google-api-javascript-client.googlecode.com/hg/samples/authSample.html
       // To use in your own application, replace this API key with your own.
-      var apiKey = '';
+      var apiKey = 'AIzaSyDa9x282f0p91xt5YKk-_-9n93qTRQ6r4k';
 
       // Use a button to handle authentication the first time.
       function handleClientLoad() {
-        gapi.client.setApiKey(apiKey);
-        makeApiCall();
+        var arrayUsers = ["108086881826934773478", "103846222472267112072"];
+        createNewDiv(arrayUsers.length);
+        for(var i = 0; i < arrayUsers.length; i++) {
+          gapi.client.setApiKey(apiKey);
+          makeApiCall(arrayUsers[i], i);
+          getLocation(arrayUsers[i], i);
+        }
+      }
+
+      function createNewDiv(n){
+        for(var i = 0; i < n; i++) {
+          var newDiv = document.createElement('div');
+          newDiv.setAttribute('id', 'div' + i);
+          document.getElementById('content').appendChild(newDiv);
+        }
       }
 
       // Load the API and make an API call.  Display the results on the screen.
-      function makeApiCall() {
+      function makeApiCall(keyUser, k) {
         gapi.client.load('plus', 'v1', function() {
           var request = gapi.client.plus.people.get({
-            'userId': ''
-            // For instance: 
+            'userId': keyUser
+            // For instance:
             // 'userId': '+GregorioRobles'
           });
           request.execute(function(resp) {
-            var heading = document.createElement('h4');
+            var heading = document.createElement('h5');
             var image = document.createElement('img');
             image.src = resp.image.url;
             heading.appendChild(image);
             heading.appendChild(document.createTextNode(resp.displayName));
-
-            document.getElementById('content').appendChild(heading);
+            document.getElementById('div'+ k).appendChild(heading);
           });
         });
       }
+
+      function getLocation(keyUser, k) {
+        gapi.client.load('plus', 'v1', function() {
+          var request = gapi.client.plus.activities.list({
+            'userId' : keyUser,
+            'collection' : 'public'
+          });
+          request.execute(function(resp) {
+            for(var i in resp.items){
+              var history = document.createElement('ul');
+              history.innerHTML = " post number " + parseInt(i) + "  location : ";
+              var list = document.createElement('il');
+              if(resp.items[i].location != null){
+                var latitude = resp.items[i].location.position.latitude;
+                var longitude = resp.items[i].location.position.longitude;
+                var location = "longitude: " + parseFloat(longitude) + " | latitude: " + parseFloat(latitude)
+              } else {
+                var location = "No location"
+              }
+              list.innerHTML = location;
+              var heading = document.createElement('h5');
+              document.getElementById('div' + k).appendChild(heading);
+              heading.appendChild(history);
+              history.appendChild(list);
+            }
+          });
+        });
+      }
+
     </script>
     <script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
-    <div id="content"></div>
+    <div id="content"> </div>
     <p>Retrieves your profile name (and picture) using the Google Plus API.</p>
   </body>
 </html>
